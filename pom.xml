@@ -14,7 +14,6 @@
 				<configuration>
 					<source>14</source>
 					<target>14</target>
-					<encoding>cp1251</encoding>
 				</configuration>
 			</plugin>
 			<plugin>

@@ -42,30 +42,29 @@ public class Bot extends TelegramLongPollingBot {
 
 			switch (user.userstate) {
 			case 0:
-				response.setText("Привет, тут очередь");
-				setButtons(Arrays.asList("Записаться в очередь", "Показать очередь", "Вычеркнуть меня из очереди",
-						"Я сдал"), response);
+				response.setText("Hi");
+				setButtons(Arrays.asList("Sign in", "Show queue", "Remove me",
+						"I passed"), response);
 				user.userstate = 1;
 				break;
 			case 1:
-				if (message.equals("Записаться в очередь")) {
+				if (message.equals("Sign in")) {
 					int queuesize = 0;
 					try {
 						queuesize = queue.keySet().stream().mapToInt(e -> (int) e).max().getAsInt();
 					} catch (Exception e) {
 						//e.printStackTrace();
-						System.out.println("Размер очереди = 0");
 					}
 					queuesize++;
 					if (user.queue == -1) {
 						queue.put(queuesize, user);
 						user.queue = queuesize;
-						response.setText("Записал, ты " + (queuesize) + " по счету");
+						response.setText("Ok, you are " + (queuesize) + " in queue");
 
 					} else {
-						response.setText("Ты уже есть в очереди");
+						response.setText("You are already in queue");
 					}
-				} else if (message.equals("Показать очередь")) {
+				} else if (message.equals("Show queue")) {
 					String text = "";
 					try {
 						for (Entry e : queue.entrySet()) {
@@ -73,15 +72,14 @@ public class Bot extends TelegramLongPollingBot {
 						}
 					} catch (Exception e0) {
 						//e0.printStackTrace();
-						System.out.println("В очереди пусто");
 					}
 					if (text.isBlank()) {
-						text = "Очередь пустая";
+						text = "Queue empty";
 					}
 					response.setText(text);
-				} else if (message.equals("Вычеркнуть меня из очереди")) {
+				} else if (message.equals("Remove me")) {
 					if (!queue.containsValue(user)) {
-						response.setText("Тебя тут и так нету");
+						response.setText("You are not here already");
 					} else {
 						User temp = ((User) (queue.get(user.queue + 1)));
 						queue.remove(user.queue);
@@ -110,18 +108,18 @@ public class Bot extends TelegramLongPollingBot {
 						try {
 							notific.enableMarkdown(true);
 							notific.setChatId(temp.chatid);
-							notific.setText("Твоя очередь сдавать");
+							notific.setText("It's your turn now. You are first now");
 							execute(notific);
 						} catch (Exception e0) {
 							e0.printStackTrace();
 						}
 
-						response.setText("Окей");
+						response.setText("Ok");
 
 					}
-				} else if (message.equals("Я сдал")) {
+				} else if (message.equals("I passed")) {
 					if (!queue.containsValue(user)) {
-						response.setText("Тебя и так нету в очереди");
+						response.setText("You are not in queue");
 					} else {
 						User temp = ((User) (queue.get(user.queue + 1)));
 						queue.remove(user.queue);
@@ -144,30 +142,22 @@ public class Bot extends TelegramLongPollingBot {
 						} else {
 							queue.remove(counter);
 						}
-						System.out.println("dsfsf");
 						user.queue = -1;
 						SendMessage notific = new SendMessage();
 						try {
 							notific.enableMarkdown(true);
 							notific.setChatId(temp.chatid);
-							notific.setText("Твоя очередь сдавать. Теперь ты первый");
+							notific.setText("It's your turn now. You are first now");
 							execute(notific);
 						} catch (Exception e0) {
 							//e0.printStackTrace();
-							System.out.println("Перед пользователем нету других людей, сообщение отправлять не нужно");
 						}
 
-						response.setText("Молодец");
+						response.setText("Nice");
 					}
 				} else {
-					System.out.println("Таких команд я не знаю");
+					System.out.println("Don't know such commands");
 				}
-				break;
-			case 2:
-				break;
-			case 3:
-				break;
-			case 4:
 				break;
 			}
 

@@ -325,6 +325,7 @@ public class Bot extends TelegramLongPollingBot {
 					List<String> buttons = Arrays.asList(DayOfWeek.values()).stream().map(e -> e.name())
 							.collect(Collectors.toList());
 					buttons.add("Back");
+					response.setText("Choose day");
 					setButtons(buttons, response);
 					user.userstate = 4;
 				} else {

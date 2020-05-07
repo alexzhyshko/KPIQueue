@@ -171,8 +171,9 @@ public class Bot extends TelegramLongPollingBot {
 							if ((LocalTime.now().isAfter(LocalTime.of(18, 0, 0))
 									&& LocalDate.now().getDayOfWeek().compareTo(queue.day.minus(2)) == 0)
 									|| (LocalDate.now().getDayOfWeek().compareTo(queue.day.minus(2)) > 0
-											&& LocalDate.now().getDayOfWeek().compareTo(queue.day) <= 0 && LocalTime.now()
+											&& LocalDate.now().getDayOfWeek().compareTo(queue.day) < 0 )||(LocalDate.now().getDayOfWeek().compareTo(queue.day) == 0 && LocalTime.now()
 													.isBefore(LocalTime.of(queue.hour + 1, queue.minute + 30, 0)))) {
+								
 								if (stack.push(user)) {
 									response.setText("Ok, you are " + (stack.indexOf(user) + 1) + " in the queue");
 								} else {
@@ -185,8 +186,9 @@ public class Bot extends TelegramLongPollingBot {
 							if ((LocalTime.now().isAfter(LocalTime.of(18, 0, 0))
 									&& LocalDate.now().getDayOfWeek().compareTo(queue.day.minus(2)) == 0)
 									|| (LocalDate.now().getDayOfWeek().compareTo(queue.day.minus(2)) > 0
-											&& LocalDate.now().getDayOfWeek().compareTo(queue.day) <= 0 && LocalTime.now()
+											&& LocalDate.now().getDayOfWeek().compareTo(queue.day) < 0 )||(LocalDate.now().getDayOfWeek().compareTo(queue.day) == 0 && LocalTime.now()
 													.isBefore(LocalTime.of(queue.hour + 1, queue.minute + 30, 0)))) {
+								
 								if (stack.push(user)) {
 									response.setText("Ok, you are " + (stack.indexOf(user) + 1) + " in the queue");
 								} else {
@@ -203,8 +205,9 @@ public class Bot extends TelegramLongPollingBot {
 						if ((LocalTime.now().isAfter(LocalTime.of(18, 0, 0))
 								&& LocalDate.now().getDayOfWeek().compareTo(queue.day.minus(2)) == 0)
 								|| (LocalDate.now().getDayOfWeek().compareTo(queue.day.minus(2)) > 0
-										&& LocalDate.now().getDayOfWeek().compareTo(queue.day) <= 0 && LocalTime.now()
+										&& LocalDate.now().getDayOfWeek().compareTo(queue.day) < 0 )||(LocalDate.now().getDayOfWeek().compareTo(queue.day) == 0 && LocalTime.now()
 												.isBefore(LocalTime.of(queue.hour + 1, queue.minute + 30, 0)))) {
+							
 							if (stack.push(user)) {
 								response.setText("Ok, you are " + (stack.indexOf(user) + 1) + " in the queue");
 							} else {
@@ -401,7 +404,7 @@ public class Bot extends TelegramLongPollingBot {
 	}
 
 	public synchronized void setButtonsWhithColumnCount(List<String> texts, SendMessage response, int columnCount) {
-		response.enableMarkdown(true);
+		response.enableMarkdown(false);
 		ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup();
 		replyKeyboardMarkup.setSelective(true);
 		replyKeyboardMarkup.setResizeKeyboard(true);

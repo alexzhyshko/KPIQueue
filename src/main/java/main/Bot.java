@@ -1,7 +1,12 @@
 package main;
 
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
@@ -14,6 +19,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMar
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 
+import model.Queue;
 import model.Stack;
 import model.User;
 
@@ -24,11 +30,13 @@ public class Bot extends TelegramLongPollingBot {
 	// users
 	private HashMap<Integer, User> users = new HashMap<>();
 	// queue
-	private HashMap<String, Stack> queues = new HashMap<>();
+	private HashMap<Queue, Stack> queues = new HashMap<>();
 	// session
 	private HashMap<Integer, HashMap<String, Object>> sessions = new HashMap<>();
 	// queue first
 	private HashMap<String, User> first = new HashMap<>();
+
+	int weekNum = LocalDate.now().getDayOfYear()/7;
 
 	public Bot() {
 		try {
@@ -37,7 +45,8 @@ public class Bot extends TelegramLongPollingBot {
 					while (true) {
 						for (Entry e : queues.entrySet()) {
 							Stack st = (Stack) e.getValue();
-							String name = (String) e.getKey();
+							Queue q = (Queue) e.getKey();
+							String name = q.name;
 							User u = st.getFirst();
 							if (first.get(name) == null) {
 								if (u != null) {
@@ -45,7 +54,7 @@ public class Bot extends TelegramLongPollingBot {
 									SendMessage not = new SendMessage();
 									not.enableMarkdown(true);
 									not.setChatId(u.chatid);
-									not.setText("You are first now in queue: "+name+", It's your turn");
+									not.setText("You are first now in queue: " + name + ", It's your turn");
 									execute(not);
 								}
 							} else if (!first.get(name).equals(u)) {
@@ -54,7 +63,7 @@ public class Bot extends TelegramLongPollingBot {
 									SendMessage not = new SendMessage();
 									not.enableMarkdown(true);
 									not.setChatId(u.chatid);
-									not.setText("You are first now in queue: "+name+", It's your turn");
+									not.setText("You are first now in queue: " + name + ", It's your turn");
 									execute(not);
 								}
 							}
@@ -95,7 +104,7 @@ public class Bot extends TelegramLongPollingBot {
 			switch (user.userstate) {
 			case 0:
 				response.setText("Choose queue");
-				List<String> btn = queues.keySet().stream().collect(Collectors.toList());
+				List<String> btn = queues.keySet().stream().map(e -> e.name).collect(Collectors.toList());
 				btn.add("Add queue");
 				btn.add("Back");
 				setButtons(btn, response);
@@ -108,18 +117,17 @@ public class Bot extends TelegramLongPollingBot {
 					user.userstate = 3;
 				} else if (message.equals("Back")) {
 					response.setText("Choose queue");
-					List<String> btns = queues.keySet().stream().collect(Collectors.toList());
+					List<String> btns = queues.keySet().stream().map(e -> e.name).collect(Collectors.toList());
 					btns.add("Add queue");
 					btns.add("Back");
 					setButtons(btns, response);
 					user.userstate = 1;
 				} else {
-					if (queues.containsKey(message)) {
+					List<String> names = queues.keySet().stream().map(e -> e.name).collect(Collectors.toList());
+					if (names.contains(message)) {
 						session.put("queuename", message);
 						response.setText("Ok, what's doin'");
-						setButtons(
-								Arrays.asList("Sign in", "Show queue", "Remove me", "I passed", "Back"),
-								response);
+						setButtons(Arrays.asList("Sign in", "Show queue", "Remove me", "I passed", "Back"), response);
 						user.userstate = 2;
 					} else {
 						response.setText("No such queue");
@@ -128,22 +136,83 @@ public class Bot extends TelegramLongPollingBot {
 
 				break;
 			case 2:
-				Stack queue = queues.get(session.get("queuename"));
+				Stack stack = null;
+				Queue queue = null;
+				// Stack queue = queues.get(session.get("queuename"));
+				for (Entry e : queues.entrySet()) {
+					if (((Queue) (e.getKey())).name.equals(session.get("queuename"))) {
+						stack = (Stack) e.getValue();
+						queue = (Queue) e.getKey();
+						break;
+					}
+				}
+
 				if (message.equals("Back")) {
 					response.setText("Choose queue");
-					List<String> buttons = queues.keySet().stream().collect(Collectors.toList());
+					List<String> buttons = queues.keySet().stream().map(e -> e.name).collect(Collectors.toList());
 					buttons.add("Add queue");
 					setButtons(buttons, response);
 					user.userstate = 1;
 				} else if (message.equals("Sign in")) {
-					if (queue.push(user)) {
-						response.setText("Ok, you are " + (queue.indexOf(user) + 1) + " in the queue");
+					boolean twoWeek = queue.twoWeek;
+					boolean evenweek = queue.evenweek;
+
+
+					if (twoWeek) {
+						if (weekNum % 2 == 0 && evenweek) {
+							if (LocalDate.now().getDayOfWeek().compareTo(queue.day.minus(2)) >= 0
+									&& LocalDate.now().getDayOfWeek().compareTo(queue.day) <= 0) {
+								if (LocalTime.now().isAfter(LocalTime.of(18, 0, 0))) {
+									if (stack.push(user)) {
+										response.setText("Ok, you are " + (stack.indexOf(user) + 1) + " in the queue");
+									} else {
+										response.setText("You are already in queue");
+									}
+								} else {
+									response.setText("Signing in is locked");
+								}
+							} else {
+								response.setText("Signing in is locked");
+							}
+						} else if (weekNum % 2 == 1 && !evenweek) {
+							if (LocalDate.now().getDayOfWeek().compareTo(queue.day.minus(2)) >= 0
+									&& LocalDate.now().getDayOfWeek().compareTo(queue.day) <= 0) {
+								if (LocalTime.now().isAfter(LocalTime.of(18, 0, 0))) {
+									if (stack.push(user)) {
+										response.setText("Ok, you are " + (stack.indexOf(user) + 1) + " in the queue");
+									} else {
+										response.setText("You are already in queue");
+									}
+								} else {
+									response.setText("Signing in is locked");
+								}
+							} else {
+								response.setText("Signing in is locked");
+							}
+						} else {
+							response.setText("Signing in is locked");
+						}
+
 					} else {
-						response.setText("You are already in queue");
+						if (LocalDate.now().getDayOfWeek().compareTo(queue.day.minus(2)) >= 0
+								&& LocalDate.now().getDayOfWeek().compareTo(queue.day) <= 0) {
+							if (LocalTime.now().isAfter(LocalTime.of(18, 0, 0))) {
+								if (stack.push(user)) {
+									response.setText("Ok, you are " + (stack.indexOf(user) + 1) + " in the queue");
+								} else {
+									response.setText("You are already in queue");
+								}
+							} else {
+								response.setText("Signing in is locked");
+							}
+						} else {
+							response.setText("Signing in is locked");
+						}
 					}
+
 				} else if (message.equals("Show queue")) {
-					
-					List<User> users = queue.getAll();
+
+					List<User> users = stack.getAll();
 					System.out.println(users);
 					String text = "";
 					for (int i = 0; i < users.size(); i++) {
@@ -154,29 +223,29 @@ public class Bot extends TelegramLongPollingBot {
 					}
 					response.setText(text);
 				} else if (message.equals("Remove me")) {
-					if (queue.remove(user)) {
-						if(first.get((String)session.get("queuename")).equals(user))
-							first.put((String)session.get("queuename"), null);
+					if (stack.remove(user)) {
+						if (first.get((String) session.get("queuename")).equals(user))
+							first.put((String) session.get("queuename"), null);
 						response.setText("Ok");
 					} else {
 						response.setText("You are not in queue");
 					}
 				} else if (message.equals("I passed")) {
-					if (queue.remove(user)) {
-						if(first.get((String)session.get("queuename")).equals(user))
-							first.put((String)session.get("queuename"), null);
+					if (stack.remove(user)) {
+						if (first.get((String) session.get("queuename")).equals(user))
+							first.put((String) session.get("queuename"), null);
 						response.setText("Nice");
 					} else {
 						response.setText("You are not in queue");
 					}
 				} else {
-					System.out.println("Don't know such commands");
+					response.setText("Don't know such commands");
 				}
 				break;
 			case 3:
 				if (message.equals("Back")) {
 					response.setText("Choose queue");
-					List<String> buttons = queues.keySet().stream().collect(Collectors.toList());
+					List<String> buttons = queues.keySet().stream().map(e -> e.name).collect(Collectors.toList());
 					buttons.add("Add queue");
 					setButtons(buttons, response);
 					user.userstate = 1;
@@ -184,14 +253,82 @@ public class Bot extends TelegramLongPollingBot {
 					if (queues.containsKey(message)) {
 						response.setText("This queue exists");
 					} else {
-						queues.put(message, new Stack());
-						response.setText("Ok");
-						first.put(message, null);
-						List<String> buttons = queues.keySet().stream().collect(Collectors.toList());
-						buttons.add("Add queue");
+						session.put("newqueuename", message);
+						response.setText("Now choose day of week");
+						List<String> buttons = Arrays.asList(DayOfWeek.values()).stream().map(e -> e.name())
+								.collect(Collectors.toList());
+						buttons.add("Back");
 						setButtons(buttons, response);
-						user.userstate = 1;
+						user.userstate = 4;
 					}
+				}
+				break;
+			case 4:
+				if (message.equals("Back")) {
+					response.setText("Enter name");
+					setButtons(Arrays.asList("Back"), response);
+					user.userstate = 3;
+				} else {
+					List<String> buttons = Arrays.asList(DayOfWeek.values()).stream().map(e -> e.name())
+							.collect(Collectors.toList());
+					if (!buttons.contains(message)) {
+						response.setText("This queue exists");
+					} else {
+						session.put("newqueueday", message);
+						response.setText("Now choose period");
+						List<String> button = Arrays.asList("Once a week", "Once two weeks", "Back");
+						setButtons(button, response);
+						user.userstate = 5;
+					}
+				}
+				break;
+			case 5:
+				if (message.equals("Back")) {
+					List<String> buttons = Arrays.asList(DayOfWeek.values()).stream().map(e -> e.name())
+							.collect(Collectors.toList());
+					buttons.add("Back");
+					setButtons(buttons, response);
+					user.userstate = 4;
+				} else {
+					if (!Arrays.asList("Once a week", "Once two weeks").contains(message)) {
+						response.setText("This queue exists");
+					} else {
+						session.put("newqueuerepeat", message);
+						if (message.equals("Once two weeks")) {
+							setButtons(Arrays.asList("Even", "Odd"), response);
+							response.setText("Choose week on which to repeat");
+							user.userstate = 6;
+						} else {
+							Queue q = new Queue(DayOfWeek.valueOf((String) session.get("newqueueday")),
+									session.get("newqueuerepeat").equals("Once two weeks"), false,
+									(String) session.get("newqueuename"));
+							queues.put(q, new Stack());
+							first.put(q.name, null);
+							List<String> buttons = queues.keySet().stream().map(e -> e.name)
+									.collect(Collectors.toList());
+							buttons.add("Add queue");
+							setButtons(buttons, response);
+							user.userstate = 1;
+							response.setText("Ok");
+						}
+					}
+				}
+				break;
+			case 6:
+				if (Arrays.asList("Even", "Odd").contains(message)) {
+					session.put("newqueueweek", message);
+					Queue q = new Queue(DayOfWeek.valueOf((String) session.get("newqueueday")),
+							session.get("newqueuerepeat").equals("Once two weeks"),
+							session.get("newqueueweek").equals("Even"), (String) session.get("newqueuename"));
+					queues.put(q, new Stack());
+					first.put(q.name, null);
+					List<String> buttons = queues.keySet().stream().map(e -> e.name).collect(Collectors.toList());
+					buttons.add("Add queue");
+					setButtons(buttons, response);
+					user.userstate = 1;
+					response.setText("Ok");
+				} else {
+					response.setText("Don't know such commands");
 				}
 				break;
 			}

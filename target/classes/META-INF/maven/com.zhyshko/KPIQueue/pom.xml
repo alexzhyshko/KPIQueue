@@ -25,7 +25,7 @@
 					<assembleDirectory>target</assembleDirectory>
 					<programs>
 						<program>
-							<mainClass>/KPIQueue/src/main/java/main/Main.java</mainClass>
+							<mainClass>main.Main</mainClass>
 							<name>KPIQueue</name>
 						</program>
 					</programs>

@@ -84,7 +84,6 @@ public class Bot extends TelegramLongPollingBot {
 					response.setText("Choose queue");
 					List<String> btns = controller.getQueues().stream().map(e -> e.name).collect(Collectors.toList());
 					btns.add("Add queue");
-					btns.add("Back");
 					setButtons(btns, response);
 					controller.setUserState(user, 1);
 				} else {

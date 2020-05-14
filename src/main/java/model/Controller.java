@@ -12,15 +12,16 @@ import java.util.List;
 
 public class Controller {
 
-//	static final String DB_URL = "jdbc:postgresql://127.0.0.1:5432/kpiqueue";
-//	static final String USER = "postgres";
-//	static final String PASS = "root";
+	static final String DB_URL = "jdbc:postgresql://127.0.0.1:5432/kpiqueue";
+	static final String USER = "postgres";
+	static final String PASS = "root";
 
 	Connection connection;
 
 	public Controller() {
 		try {
-			this.connection = DriverManager.getConnection(System.getenv("JDBC_DATABASE_URL"));
+			//this.connection = DriverManager.getConnection(System.getenv("JDBC_DATABASE_URL"));
+			this.connection = DriverManager.getConnection(DB_URL, USER, PASS);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -33,7 +34,8 @@ public class Controller {
 			ps.setInt(1, userid);
 			ResultSet rs = ps.executeQuery();
 			while (rs.next()) {
-				user = new User(rs.getString(1), rs.getInt(2), rs.getString(3), rs.getString(4), rs.getInt(5), rs.getLong(6));
+				user = new User(rs.getString(1), rs.getInt(2), rs.getString(3), rs.getString(4), rs.getInt(5),
+						rs.getLong(6));
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -119,7 +121,8 @@ public class Controller {
 			ps.setInt(1, queue.id);
 			ResultSet rs = ps.executeQuery();
 			while (rs.next()) {
-				users.add(new User(rs.getString(1), rs.getInt(2), rs.getString(3), rs.getString(4), rs.getInt(5), rs.getLong(6)));
+				users.add(new User(rs.getString(1), rs.getInt(2), rs.getString(3), rs.getString(4), rs.getInt(5),
+						rs.getLong(6)));
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -194,7 +197,8 @@ public class Controller {
 			ps.setInt(1, q.id);
 			ResultSet rs = ps.executeQuery();
 			while (rs.next()) {
-				user = new User(rs.getString(1), rs.getInt(2), rs.getString(3), rs.getString(4), rs.getInt(5), rs.getLong(6));
+				user = new User(rs.getString(1), rs.getInt(2), rs.getString(3), rs.getString(4), rs.getInt(5),
+						rs.getLong(6));
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -202,61 +206,77 @@ public class Controller {
 		return user;
 	}
 
-	
 	public Notification removeUserFromQueue(User user, Queue queue) {
-		String check = "SELECT place FROM user_queue WHERE user_id=? AND queue_id=?";
-		int place = 0;
-		try (PreparedStatement ps = connection.prepareStatement(check)) {
+		String exists = "SELECT EXISTS(SELECT user_id FROM user_queue WHERE user_id=? AND queue_id=?)";
+		boolean userExists = true;
+		try (PreparedStatement ps = connection.prepareStatement(exists)) {
 			ps.setInt(1, user.userid);
 			ps.setInt(2, queue.id);
 			ResultSet rs = ps.executeQuery();
 			while (rs.next()) {
-				place = rs.getInt(1);
+				userExists = rs.getBoolean(1);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
 		}
-		
-		String query = "DELETE FROM user_queue WHERE user_id=? AND queue_id=?";
-		try (PreparedStatement ps = connection.prepareStatement(query)) {
-			ps.setInt(1, user.userid);
-			ps.setInt(2, queue.id);
-			ps.executeUpdate();
-		} catch (Exception e) {
-			e.printStackTrace();
-			return null;
-		}
-		
-		String query2 = "UPDATE user_queue SET place = place-1 WHERE queue_id=? AND place>?";
-		try (PreparedStatement ps = connection.prepareStatement(query2)) {
-			ps.setInt(1, queue.id);
-			ps.setInt(2, place);
-			ps.executeUpdate();
-		} catch (Exception e) {
-			e.printStackTrace();
-			return null;
-		}
-		
-		
-		if(place == 1) {
-			String query3 = "SELECT Users.username, Users.userstate, Users.name, Users.surname, Users.id, Users.chatid FROM Users JOIN user_queue ON Users.id = user_queue.user_id WHERE user_queue.queue_id=? AND place=1";
-			try (PreparedStatement ps = connection.prepareStatement(query3)) {
-				ps.setInt(1, queue.id);
+
+		if (userExists) {
+			String check = "SELECT place FROM user_queue WHERE user_id=? AND queue_id=?";
+			int place = 0;
+			try (PreparedStatement ps = connection.prepareStatement(check)) {
+				ps.setInt(1, user.userid);
+				ps.setInt(2, queue.id);
 				ResultSet rs = ps.executeQuery();
 				while (rs.next()) {
-					return new Notification(new User(rs.getString(1), rs.getInt(2), rs.getString(3), rs.getString(4), rs.getInt(5), rs.getLong(6)), true);
+					place = rs.getInt(1);
 				}
-				return new Notification(null, true); 
 			} catch (Exception e) {
 				e.printStackTrace();
 				return null;
 			}
+
+			String query = "DELETE FROM user_queue WHERE user_id=? AND queue_id=?";
+			try (PreparedStatement ps = connection.prepareStatement(query)) {
+				ps.setInt(1, user.userid);
+				ps.setInt(2, queue.id);
+				ps.executeUpdate();
+			} catch (Exception e) {
+				e.printStackTrace();
+				return null;
+			}
+
+			String query2 = "UPDATE user_queue SET place = place-1 WHERE queue_id=? AND place>?";
+			try (PreparedStatement ps = connection.prepareStatement(query2)) {
+				ps.setInt(1, queue.id);
+				ps.setInt(2, place);
+				ps.executeUpdate();
+			} catch (Exception e) {
+				e.printStackTrace();
+				return null;
+			}
+
+			if (place == 1) {
+				String query3 = "SELECT Users.username, Users.userstate, Users.name, Users.surname, Users.id, Users.chatid FROM Users JOIN user_queue ON Users.id = user_queue.user_id WHERE user_queue.queue_id=? AND place=1";
+				try (PreparedStatement ps = connection.prepareStatement(query3)) {
+					ps.setInt(1, queue.id);
+					ResultSet rs = ps.executeQuery();
+					while (rs.next()) {
+						return new Notification(new User(rs.getString(1), rs.getInt(2), rs.getString(3),
+								rs.getString(4), rs.getInt(5), rs.getLong(6)), true);
+					}
+					return new Notification(null, true);
+				} catch (Exception e) {
+					e.printStackTrace();
+					return null;
+				}
+			} else {
+				return new Notification(null, true);
+			}
 		}else {
-			return new Notification(null, true);
+			return null;
 		}
-		
+
 	}
-	
-	
+
 }

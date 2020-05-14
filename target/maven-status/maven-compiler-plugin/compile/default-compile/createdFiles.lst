@@ -1,4 +1,7 @@
 main\Bot.class
 model\Stack.class
 main\Main.class
+model\Controller.class
 model\User.class
+model\Notification.class
+model\Queue.class

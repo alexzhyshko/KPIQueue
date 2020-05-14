@@ -20,7 +20,7 @@ public class Controller {
 
 	public Controller() {
 		try {
-			this.connection = DriverManager.getConnection(System.getenv("DATABASE_URL"));
+			this.connection = DriverManager.getConnection(System.getenv("JDBC_DATABASE_URL"));
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}

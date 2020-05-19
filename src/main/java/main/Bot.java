@@ -137,19 +137,16 @@ public class Bot extends TelegramLongPollingBot {
 					LocalDateTime urkaine = heroku.plusHours(3);
 					LocalDate ukraineDate = urkaine.toLocalDate();
 					LocalTime ukraineTime = urkaine.toLocalTime();
-					System.out.println(LocalDateTime.now());
+					System.out.println(urkaine);
 					System.out.println(queue.day);
 					System.out.println(ukraineTime.isAfter(LocalTime.of(18, 0, 0)) && (ukraineDate.getDayOfWeek().compareTo(queue.day.minus(2)) == 0));
 					System.out.println((ukraineDate.getDayOfWeek().compareTo(queue.day.minus(2)) > 0 && ukraineDate.getDayOfWeek().compareTo(queue.day) < 0));
 					System.out.println((ukraineDate.getDayOfWeek().compareTo(queue.day) == 0 && ukraineTime.isBefore(LocalTime.of(queue.hour + 1, queue.minute + 30, 0))));
 					if (twoWeek) {
 						if (weekNum % 2 == 0 && evenweek) {
-							if ((LocalTime.now().isAfter(LocalTime.of(18, 0, 0))
-									&& (LocalDate.now().getDayOfWeek().compareTo(queue.day.minus(2)) == 0))
-									|| (LocalDate.now().getDayOfWeek().compareTo(queue.day.minus(2)) > 0
-											&& LocalDate.now().getDayOfWeek().compareTo(queue.day) < 0)
-									|| (LocalDate.now().getDayOfWeek().compareTo(queue.day) == 0 && LocalTime.now()
-											.isBefore(LocalTime.of(queue.hour + 1, queue.minute + 30, 0)))) 
+							if (ukraineTime.isAfter(LocalTime.of(18, 0, 0)) && (ukraineDate.getDayOfWeek().compareTo(queue.day.minus(2)) == 0)
+									|| (ukraineDate.getDayOfWeek().compareTo(queue.day.minus(2)) > 0 && ukraineDate.getDayOfWeek().compareTo(queue.day) < 0)
+									|| (ukraineDate.getDayOfWeek().compareTo(queue.day) == 0 && ukraineTime.isBefore(LocalTime.of(queue.hour + 1, queue.minute + 30, 0)))) 
 							{
 
 								if (controller.addUserToQueue(user, queue)) {
@@ -161,12 +158,9 @@ public class Bot extends TelegramLongPollingBot {
 								response.setText("Signing in is locked");
 							}
 						} else if (weekNum % 2 == 1 && !evenweek) {
-							if ((LocalTime.now().isAfter(LocalTime.of(18, 0, 0))
-									&& (LocalDate.now().getDayOfWeek().compareTo(queue.day.minus(2)) == 0))
-									|| (LocalDate.now().getDayOfWeek().compareTo(queue.day.minus(2)) > 0
-											&& LocalDate.now().getDayOfWeek().compareTo(queue.day) < 0)
-									|| (LocalDate.now().getDayOfWeek().compareTo(queue.day) == 0 && LocalTime.now()
-											.isBefore(LocalTime.of(queue.hour + 1, queue.minute + 30, 0)))) 
+							if (ukraineTime.isAfter(LocalTime.of(18, 0, 0)) && (ukraineDate.getDayOfWeek().compareTo(queue.day.minus(2)) == 0)
+									|| (ukraineDate.getDayOfWeek().compareTo(queue.day.minus(2)) > 0 && ukraineDate.getDayOfWeek().compareTo(queue.day) < 0)
+									|| (ukraineDate.getDayOfWeek().compareTo(queue.day) == 0 && ukraineTime.isBefore(LocalTime.of(queue.hour + 1, queue.minute + 30, 0)))) 
 							{
 
 								if (controller.addUserToQueue(user, queue)) {
@@ -196,12 +190,9 @@ public class Bot extends TelegramLongPollingBot {
 						}
 
 					} else {
-						if ((LocalTime.now().isAfter(LocalTime.of(18, 0, 0))
-								&& (LocalDate.now().getDayOfWeek().compareTo(queue.day.minus(2)) == 0))
-								|| (LocalDate.now().getDayOfWeek().compareTo(queue.day.minus(2)) > 0
-										&& LocalDate.now().getDayOfWeek().compareTo(queue.day) < 0)
-								|| (LocalDate.now().getDayOfWeek().compareTo(queue.day) == 0 && LocalTime.now()
-										.isBefore(LocalTime.of(queue.hour + 1, queue.minute + 30, 0)))) 
+						if (ukraineTime.isAfter(LocalTime.of(18, 0, 0)) && (ukraineDate.getDayOfWeek().compareTo(queue.day.minus(2)) == 0)
+								|| (ukraineDate.getDayOfWeek().compareTo(queue.day.minus(2)) > 0 && ukraineDate.getDayOfWeek().compareTo(queue.day) < 0)
+								|| (ukraineDate.getDayOfWeek().compareTo(queue.day) == 0 && ukraineTime.isBefore(LocalTime.of(queue.hour + 1, queue.minute + 30, 0)))) 
 						{
 
 							if (controller.addUserToQueue(user, queue)) {

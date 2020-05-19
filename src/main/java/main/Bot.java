@@ -131,6 +131,9 @@ public class Bot extends TelegramLongPollingBot {
 					boolean evenweek = queue.evenweek;
 					setButtons(Arrays.asList("Sign in", "Show queue", "Remove me", "I passed", "Delete queue", "Back"),
 							response);
+					System.out.println(LocalTime.now().isAfter(LocalTime.of(18, 0, 0)) && (LocalDate.now().getDayOfWeek().compareTo(queue.day.minus(2)) == 0));
+					System.out.println((LocalDate.now().getDayOfWeek().compareTo(queue.day.minus(2)) > 0 && LocalDate.now().getDayOfWeek().compareTo(queue.day) < 0));
+					System.out.println((LocalDate.now().getDayOfWeek().compareTo(queue.day) == 0 && LocalTime.now().isBefore(LocalTime.of(queue.hour + 1, queue.minute + 30, 0))));
 					if (twoWeek) {
 						if (weekNum % 2 == 0 && evenweek) {
 							if ((LocalTime.now().isAfter(LocalTime.of(18, 0, 0))

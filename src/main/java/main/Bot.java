@@ -2,6 +2,7 @@ package main;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -131,6 +132,8 @@ public class Bot extends TelegramLongPollingBot {
 					boolean evenweek = queue.evenweek;
 					setButtons(Arrays.asList("Sign in", "Show queue", "Remove me", "I passed", "Delete queue", "Back"),
 							response);
+					System.out.println(LocalDateTime.now());
+					System.out.println(queue.day);
 					System.out.println(LocalTime.now().isAfter(LocalTime.of(18, 0, 0)) && (LocalDate.now().getDayOfWeek().compareTo(queue.day.minus(2)) == 0));
 					System.out.println((LocalDate.now().getDayOfWeek().compareTo(queue.day.minus(2)) > 0 && LocalDate.now().getDayOfWeek().compareTo(queue.day) < 0));
 					System.out.println((LocalDate.now().getDayOfWeek().compareTo(queue.day) == 0 && LocalTime.now().isBefore(LocalTime.of(queue.hour + 1, queue.minute + 30, 0))));

@@ -14,9 +14,9 @@ import java.util.List;
 
 public class Controller {
 
-	//static final String DB_URL = "jdbc:postgresql://127.0.0.1:5432/kpiqueue";
-	//static final String USER = "postgres";
-	//static final String PASS = "root";
+//	static final String DB_URL = "jdbc:postgresql://127.0.0.1:5432/kpiqueue";
+//	static final String USER = "postgres";
+//	static final String PASS = "root";
 
 	Connection connection;
 
